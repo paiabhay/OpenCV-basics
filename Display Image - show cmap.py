@@ -28,6 +28,3 @@ plot_image(img, is_gray=False)
 img_patch = gray_img[130:170, 130:170]
 print('Pixel values of patch image', img)
 plot_image(img_patch, is_gray=True)
-
-#
-print(img_patch)
