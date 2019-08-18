@@ -20,7 +20,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Control log message outputs
 # Provide locations of files used for in below code
 video_location = '../Videos/video3.mp4'
 model_location = 'Saved_Models/model.h5'
-haar_cascade_xml = '../OpenCV/haarcascades/haarcascade_frontalface_default.xml'
+haar_cascade_xml = '../Haarcascades/haarcascade_frontalface_default.xml'
 
 
 # Create a Neural Network
