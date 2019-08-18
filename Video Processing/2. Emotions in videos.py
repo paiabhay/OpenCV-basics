@@ -16,14 +16,14 @@ import matplotlib as mpl
 mpl.use('TkAgg')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Control log message outputs
 
-<<<<<<< HEAD
-=======
-# Provide locations of files used for in below code
-video_location = '../Videos/video3.mp4'
-model_location = 'Saved_Models/model.h5'
-haar_cascade_xml = '../Haarcascades/haarcascade_frontalface_default.xml'
 
->>>>>>> 73642eb4f47a69c964e25c821c30ae2cf82ab39b
+
+
+
+
+
+
+
 
 # Create a Neural Network
 def create_model():
@@ -121,7 +121,8 @@ def run_model(model_location, video_location, haar_cascade_xml):
     cv2.destroyAllWindows()
 
 
-<<<<<<< HEAD
+
+
 def main():
     # Provide locations of files used for in below code
     video_location = 'Videos/video3.mp4'
@@ -134,6 +135,9 @@ def main():
 
 if __name__ == '__main__':
     main()
-=======
-run_model()
->>>>>>> 73642eb4f47a69c964e25c821c30ae2cf82ab39b
+
+
+
+
+
+
