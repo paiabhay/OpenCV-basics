@@ -14,6 +14,7 @@ from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 import os
 from datetime import datetime
+import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.use('TkAgg')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Control log message outputs
@@ -21,6 +22,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Control log message outputs
 # Arrays to store frame and emotion
 frame_number = []
 emotions_each_frame = []
+
 
 # Create a Neural Network
 def create_model():
@@ -56,14 +58,14 @@ def run_model(model_location, video_location, haar_cascade_xml):
     # Prevents openCL usage and unnecessary logging messages
     cv2.ocl.setUseOpenCL(False)
 
-    # Pictionary which assigns each label an emotion
+    # Dictionary which assigns each label an emotion
     # Provide in alphabetical order
     emotion_dict = {0: "Angry", 1: "Disgusted", 2: "Fearful",
                     3: "Happy", 4: "Neutral", 5: "Sad",
                     6: "Surprised"}
 
     # Provide input video
-    # To read from webcam, use cv2.VideoCapture(0)
+    # To read from web-cam, use cv2.VideoCapture(0)
     video = cv2.VideoCapture(video_location)
 
     frame_counter = 0
@@ -134,6 +136,7 @@ def save_to_csv(frames, emotions, video_file_name):
                               index=False, header=True,
                               sep=',')
     print('Data saved to file successfully.')
+    return dataframe_emotions
 
 
 def main():
@@ -145,7 +148,14 @@ def main():
 
     # Run the model
     frames, emotions = run_model(model_location, video_location, haar_cascade_xml)
-    save_to_csv(frames, emotions, video_name)
+    df_emotions = save_to_csv(frames, emotions, video_name)
+    print('Frequency count of each emotion: \n', df_emotions['Emotion'].value_counts())
+
+    # Plot
+    plt.xlabel('Emotions')
+    plt.ylabel('Frequency')
+    df_emotions['Emotion'].value_counts().plot()
+    plt.show()
 
 
 if __name__ == '__main__':
