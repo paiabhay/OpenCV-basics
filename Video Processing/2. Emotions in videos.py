@@ -5,6 +5,7 @@ then we check each frame to identify the emotion
 '''
 
 # Helping libraries
+import pandas as pd
 import numpy as np
 import cv2
 from keras.models import Sequential
@@ -12,10 +13,14 @@ from keras.layers.core import Dense, Dropout, Flatten
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 import os
+from datetime import datetime
 import matplotlib as mpl
 mpl.use('TkAgg')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Control log message outputs
 
+# Arrays to store frame and emotion
+frame_number = []
+emotions_each_frame = []
 
 # Create a Neural Network
 def create_model():
@@ -96,7 +101,9 @@ def run_model(model_location, video_location, haar_cascade_xml):
 
             # Print predicted emotion (the one with maximum likelihood
             print('Frame {}, Emotion: {}'.format(frame_counter, emotion_dict[max_index]))
-            frame_counter +=1
+            frame_number.append(frame_counter)
+            emotions_each_frame.append(emotion_dict[max_index])
+            frame_counter += 1
 
             # Display the emotion text in video by marking the face
             cv2.putText(frame, emotion_dict[max_index], (x + 20, y - 60),
@@ -111,16 +118,34 @@ def run_model(model_location, video_location, haar_cascade_xml):
 
     video.release()
     cv2.destroyAllWindows()
+    return np.array(frame_number), np.array(emotions_each_frame)
+
+
+def save_to_csv(frames, emotions, video_file_name):
+    # Create synthetic data folder if it doesn't exist
+    if not os.path.exists('Extracted_Data'):
+        os.makedirs('Extracted_Data')
+
+    # Convert data to data-frame and save to csv file
+    dataframe_emotions = pd.DataFrame({'Frames': frames,
+                                       'Emotion': emotions})
+    dataframe_emotions.to_csv('Extracted_Data/{}_{}.csv'.format(video_file_name,
+                                                                datetime.now().strftime('%d.%m.%Y_%H.%M.%S')),
+                              index=False, header=True,
+                              sep=',')
+    print('Data saved to file successfully.')
 
 
 def main():
     # Provide locations of files used for in below code
+    video_name = 'video3'
     video_location = 'Videos/video3.mp4'
     model_location = 'Saved_Models/model.h5'
     haar_cascade_xml = 'Haarcascades/haarcascade_frontalface_default.xml'
 
     # Run the model
-    run_model(model_location, video_location, haar_cascade_xml)
+    frames, emotions = run_model(model_location, video_location, haar_cascade_xml)
+    save_to_csv(frames, emotions, video_name)
 
 
 if __name__ == '__main__':
