@@ -16,12 +16,33 @@ import os
 from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from scipy.interpolate import spline
 mpl.use('TkAgg')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Control log message outputs
 
 # Arrays to store frame and emotion
-frame_number = []
-emotions_each_frame = []
+frame_number = list()
+emotions_each_frame = list()
+emotion_value = list()
+
+
+def value_for_emotion(emotion):
+    if emotion == "Angry":
+        value = -2
+    elif emotion == "Disgusted":
+        value = -4
+    elif emotion == "Fearful":
+        value = -1
+    elif emotion == "Happy":
+        value = 3
+    elif emotion == "Neutral":
+        value = 0
+    elif emotion == "Sad":
+        value = -3
+    else: # for 'Surprised'
+        value = 2
+
+    return value
 
 
 # Create a Neural Network
@@ -65,7 +86,7 @@ def run_model(model_location, video_location, haar_cascade_xml):
                     6: "Surprised"}
 
     # Provide input video
-    # To read from web-cam, use cv2.VideoCapture(0)
+    # To read from webcam, use cv2.VideoCapture(0)
     video = cv2.VideoCapture(video_location)
 
     frame_counter = 0
@@ -100,11 +121,14 @@ def run_model(model_location, video_location, haar_cascade_xml):
             # Make a prediction
             predicted = model.predict(cropped_img)
             max_index = int(np.argmax(predicted))
+            emo_val = value_for_emotion(emotion_dict[max_index])
 
             # Print predicted emotion (the one with maximum likelihood
-            print('Frame {}, Emotion: {}'.format(frame_counter, emotion_dict[max_index]))
+            print('Frame {}, Emotion: {}, Value: {}'.format(frame_counter, emotion_dict[max_index], emo_val))
             frame_number.append(frame_counter)
             emotions_each_frame.append(emotion_dict[max_index])
+            emotion_value.append(emo_val)
+
             frame_counter += 1
 
             # Display the emotion text in video by marking the face
@@ -120,23 +144,47 @@ def run_model(model_location, video_location, haar_cascade_xml):
 
     video.release()
     cv2.destroyAllWindows()
-    return np.array(frame_number), np.array(emotions_each_frame)
+    return frame_number, emotions_each_frame, emotion_value
 
 
-def save_to_csv(frames, emotions, video_file_name):
+def save_to_csv(frames, emotions, emotion_val, video_file_name):
     # Create synthetic data folder if it doesn't exist
     if not os.path.exists('Extracted_Data'):
         os.makedirs('Extracted_Data')
 
     # Convert data to data-frame and save to csv file
     dataframe_emotions = pd.DataFrame({'Frames': frames,
-                                       'Emotion': emotions})
+                                       'Emotion': emotions,
+                                       'Emotion_Value': emotion_val})
     dataframe_emotions.to_csv('Extracted_Data/{}_{}.csv'.format(video_file_name,
                                                                 datetime.now().strftime('%d.%m.%Y_%H.%M.%S')),
                               index=False, header=True,
                               sep=',')
     print('Data saved to file successfully.')
     return dataframe_emotions
+
+
+def plot_graph(dataframe_emotions):
+    plt.figure(figsize=(10,20))
+    plt.xlabel('Frames')
+    plt.ylabel('Emotion_Value')
+    plt.axhline(y=0, color='red')
+
+    x = dataframe_emotions['Frames']
+    y = dataframe_emotions['Emotion_Value']
+
+    x_new = np.linspace(x.min(), x.max(), 500)
+    y_smooth = spline(x, y, x_new)
+
+    plt.plot(x_new, y_smooth, '-', color='lightcoral')
+    plt.scatter(x, y, color='maroon')
+    plt.show()
+
+    # Plot Value counts
+    plt.xlabel('Emotions')
+    plt.ylabel('Frequency')
+    dataframe_emotions['Emotion'].value_counts().plot()
+    plt.show()
 
 
 def main():
@@ -147,15 +195,12 @@ def main():
     haar_cascade_xml = 'Haarcascades/haarcascade_frontalface_default.xml'
 
     # Run the model
-    frames, emotions = run_model(model_location, video_location, haar_cascade_xml)
-    df_emotions = save_to_csv(frames, emotions, video_name)
+    frames, emotions, emotion_val = run_model(model_location, video_location, haar_cascade_xml)
+
+    df_emotions = save_to_csv(frames, emotions, emotion_val, video_name)
     print('Frequency count of each emotion: \n', df_emotions['Emotion'].value_counts())
 
-    # Plot
-    plt.xlabel('Emotions')
-    plt.ylabel('Frequency')
-    df_emotions['Emotion'].value_counts().plot()
-    plt.show()
+    plot_graph(df_emotions)
 
 
 if __name__ == '__main__':
