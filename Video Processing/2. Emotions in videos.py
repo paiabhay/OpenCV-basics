@@ -28,11 +28,11 @@ emotion_value = list()
 
 def value_for_emotion(emotion):
     if emotion == "Angry":
-        value = -2
-    elif emotion == "Disgusted":
-        value = -4
-    elif emotion == "Fearful":
         value = -1
+    elif emotion == "Disgusted":
+        value = -2
+    elif emotion == "Fearful":
+        value = 1
     elif emotion == "Happy":
         value = 3
     elif emotion == "Neutral":
@@ -167,7 +167,7 @@ def save_to_csv(frames, emotions, emotion_val, video_file_name):
 def plot_graph(dataframe_emotions):
     plt.figure(figsize=(10,20))
     plt.xlabel('Frames')
-    plt.ylabel('Emotion_Value')
+    plt.ylabel('Emotion')
     plt.axhline(y=0, color='red')
 
     x = dataframe_emotions['Frames']
@@ -177,13 +177,15 @@ def plot_graph(dataframe_emotions):
     y_smooth = spline(x, y, x_new)
 
     plt.plot(x_new, y_smooth, '-', color='lightcoral')
+    plt.yticks(np.array([-3, -2, -1, 0, 1, 2, 3]),
+               ('Sad', 'Disgusted', 'Angry', 'Neutral', 'Fearful', 'Surprised', 'Happy'))
     plt.scatter(x, y, color='maroon')
     plt.show()
 
     # Plot Value counts
     plt.xlabel('Emotions')
     plt.ylabel('Frequency')
-    dataframe_emotions['Emotion'].value_counts().plot()
+    dataframe_emotions['Emotion'].value_counts().plot(kind='bar')
     plt.show()
 
 
